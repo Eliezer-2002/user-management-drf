@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&family=Patrick+Hand&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* font-family: "Patrick Hand", cursive; */
+    font-family: "Baloo 2", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button,
+.title-font {
+    /* font-family: "Baloo 2", sans-serif; */
+    font-family: "Patrick Hand", cursive;
+    font-weight: bold;
+}
+
+/* ====================================== */
+/* Navigation Bar Responsive Design Start */
+/* ====================================== */
+
+@media (max-width: 600px) {
+
+    .navbar-brand {
+        flex-grow: 1;
+        text-align: center;
+    }
+
+    .nav-items {
+        width: 100%;
+        justify-content: center;
+    }
+
+}
+
+@media (max-width: 450px) {
+
+    .nav-items {
+        margin-bottom: 10px;
+        flex-direction: column-reverse;
+        margin-bottom: 0 !important;
+    }
+
+    .nav-items>.search-items input {
+        padding: 0 5px;
+        font-size: 15px !important;
+        height: 25px;
+    }
+
+    .nav-items>.search-items button {
+        padding: 0 5px;
+        font-size: 15px !important;
+        height: 25px;
+    }
+
+    .nav-items>button {
+        font-size: 15px !important;
+        margin-bottom: 5px;
+        width: 80px;
+        align-self: flex-end;
+        padding: 0;
+    }
+
+}
+
+/* ==================================== */
+/* Navigation Bar Responsive Design end */
+/* ==================================== */
+
+
+/* ===================================== */
+/* List Of Users Responsive Design start */
+/* ===================================== */
+
+@media (max-width: 545px) {
+
+    .head-title {
+        margin-top: 25px !important;
+    }
+
+    .user-list {
+        gap: 5px;
+    }
+
+    .user-col {
+        margin: 2px auto !important;
+        padding: 0 !important;
+    }
+
+    .user-card>.card-body {
+        padding: 5px 10px !important;
+    }
+
+    .user-btns {
+        flex-direction: row !important;
+    }
+
+    .user-btns>button {
+        font-size: 7px !important;
+        margin: auto 0 auto 7px !important;
+        padding: 4px !important;
+        padding-bottom: 2px !important;
+    }
+
+    .pagination .page-link{
+        padding: 0 5px;
+    }
+}
+
+@media (max-width: 350px) {
+
+    .user-card>.card-body>.card-info>h5 {
+        font-size: 14px;
+        margin-bottom: 0 !important;
+    }
+
+    .user-card>.card-body>.card-info>p {
+        font-size: 12px;
+    }
+}
+
+/* =================================== */
+/* List Of Users Responsive Design end */
+/* =================================== */

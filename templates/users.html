@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<!-- ============================================================= -->
+<!-- ================== Users Page Content Start================== -->
+<!-- ============================================================= -->
+<div class="container">
+    <!-- Alerts -->
+    <div id="liveAlertPlaceholder"></div>
+    <h2 class="mt-5 title-font head-title">Users</h2>
+    <!-- Users List -->
+    <div class="user-list row g-3 my-3" id="userList">
+    </div>
+</div>
+
+<!-- Pagination Buttons -->
+<nav>
+    <div class="pagination justify-content-center">
+        <button class="page-link m-2 fs-4 fw-bold btn" onclick="prevPage()">&lt;</button>
+        <button class="page-link m-2 fs-4 fw-bold btn" onclick="nextPage()">&gt;</button>
+    </div>
+</nav>
+
+<!-- Create User Model from Bootstrap design -->
+<div class="modal fade" id="UserCreateModal" tabindex="-1" aria-labelledby="UserCreateModalLabel" aria-hidden="true"
+    role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5 title-font" id="UserCreateModalLabel">Create User</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="event.preventDefault(); createUser();">
+                    <input class="form-control my-3" type="text" id="newUsername" placeholder="Username" required autocomplete="username">
+                    <input class="form-control my-3" type="email" id="newEmail" placeholder="Email" required autocomplete="email">
+                    <input class="form-control my-3" type="password" id="newPassword" placeholder="Password" required autocomplete="new-password">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create
+                            User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Id -->
+<input type="hidden" id="userId">
+
+<!-- Update User Model from Bootstrap design -->
+<div class="modal fade" id="UserUpdateModal" tabindex="-1" aria-labelledby="UserUpdateModalLabel" aria-hidden="true"
+    role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="UserUpdateModalLabel">Update User</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="event.preventDefault(); updateUser();">
+                    <input class="form-control my-3" type="text" id="updateUsername" placeholder="Username" required>
+                    <input class="form-control my-3" type="email" id="updateEmail" placeholder="Email" required>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save
+                            Changes</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Modal from Bootstrap design -->
+<div class="modal fade" id="DeleteUserBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="DeleteUserBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="DeleteUserBackdropLabel">Modal title</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you Delete this user !
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="deleteUser(false)">No</button>
+                <button type="button" class="btn btn-primary" onclick="deleteUser(true)">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================= -->
+<!-- ================== Users Page Content End =================== -->
+<!-- ============================================================= -->
+
+{% endblock %}
+{% block script %}
+<script>
+
+    // Alerts Handler
+    const alertPlaceholder = document.getElementById('liveAlertPlaceholder')
+    const appendAlert = (message, type) => {
+        const wrapper = document.createElement('div')
+        wrapper.innerHTML = [
+            `<div class="alert alert-${type} alert-dismissible mt-4" role="alert">`,
+            `   <div>${message}</div>`,
+            '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+            '</div>'
+        ].join('')
+
+        alertPlaceholder.append(wrapper)
+    }
+
+
+    // document.addEventListener("DOMContentLoaded", function() {
+    //     // Find all elements with the 'modal' class
+    //     const modals = document.querySelectorAll('.modal');
+
+    //     modals.forEach((modal) => {
+    //         // Listen for the 'hide' event which starts immediately upon closing
+    //         modal.addEventListener('hide.bs.modal', () => {
+    //             // If there's an active element (like a button or input), blur it
+    //             if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    //                 document.activeElement.blur();
+    //             }
+    //         });
+    //     });
+    // });
+
+    // Modal Element's Focus Remover (Important)
+    document.querySelectorAll('.modal').forEach((modal) => {
+        modal.addEventListener('hide.bs.modal', () => {
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
+        })
+    })
+
+    // Pagination Defaults
+    let nextUrl = null
+    let prevUrl = null
+
+    // List Users Handler
+    function loadUsers(url = null) {
+        const search = document.getElementById('search').value;
+        let finalUrl = url;
+        if (!finalUrl) {
+            const parems = new URLSearchParams();
+            if (search) {
+                parems.append('search', search)
+            }
+            finalUrl = `/api/users/?page=1&${parems.toString()}`;
+        }
+
+
+        fetch(finalUrl, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            }
+        }).then(respons => {
+            if (!respons.ok) {
+                throw new Error(respons.statusText);
+            }
+            return respons.json();
+        }).then(data => {
+            const list = document.getElementById('userList');
+            list.innerHTML = ''
+            data.results.forEach(user => {
+                let card = document.createElement('div');
+                card.classList.add('user-col', 'col-md-6', 'col-lg-4', 'col-xxl-3', 'mb-3', 'mb-sm-0');
+                card.innerHTML = `
+                    <div class="user-card card">
+                        <div class="card-body d-flex p-3 align-items-center">
+                            <div class="me-auto card-info">
+                                <h5 class="card-title">${user.username}</h5>
+                                <p class="card-text">${user.email}</p>
+                            </div>
+                            <div class="user-btns d-flex flex-column ms-auto">
+                                <button type="button" class="btn btn-warning mb-1" onclick="updateForm(${user.id})" data-bs-toggle="modal" data-bs-target="#UserUpdateModal"><ion-icon class="fs-5" name="create-outline"></ion-icon></button>
+                                <button type="button" class="btn btn-danger mt-1" onclick="confirmDelete(${user.id})" data-bs-toggle="modal" data-bs-target="#DeleteUserBackdrop"><ion-icon class="fs-5" name="trash-outline"></ion-icon></button>
+                            </div>                           
+                        </div>
+                    </div>                   
+                    `;
+                list.appendChild(card);
+            });
+            nextUrl = data.next;
+            prevUrl = data.previous;
+        }).catch(err => {
+            if (confirm(err.message + " | Refresh Acces Token !!")) {
+                authenticate()
+            } else {
+                window.location.href = '';
+            }
+        });
+    }
+
+    // Pagination Handlers
+    function prevPage() {
+        if (prevUrl) {
+            loadUsers(prevUrl);
+        }
+    }
+    function nextPage() {
+        if (nextUrl) {
+            loadUsers(nextUrl);
+        }
+    }
+
+    // User creation Handler
+    function createUser() {
+        const username = document.getElementById('newUsername').value.trim();
+        const email = document.getElementById('newEmail').value.trim();
+        const password = document.getElementById('newPassword').value.trim();
+
+        if (!username || !email || !password) {
+            appendAlert("Pleace fill all details listed", 'danger');
+            return;
+        }
+
+        fetch('/api/users/create/', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username, email, password
+            })
+        }).then(res => {
+            if (!res.ok) {
+                throw new Error("User Creation Failed")
+            }
+            return res.json();
+        }).then(data => {
+
+            // Clear Form
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newEmail').value = '';
+            document.getElementById('newPassword').value = '';
+
+            // Close Modal
+            const modalElement = document.getElementById('UserCreateModal');
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modalInstance.hide();
+            loadUsers();
+            appendAlert('User Created Successfully', 'success');
+        }).catch(err => {
+            appendAlert(`${err.message}`, 'warning');
+        });
+    }
+
+    // User Deletion Handler
+    function confirmDelete(userId) {
+        document.getElementById('userId').value = userId;
+    }
+    function deleteUser(status) {
+        if (!status) {
+            // Close Modal
+            const modalElement = document.getElementById('DeleteUserBackdrop');
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modalInstance.hide();
+            appendAlert("User Not Deleted", 'info');
+            return;
+        }
+
+        const userId = document.getElementById('userId').value;
+
+        fetch(`/api/users/${userId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error("Deletion Failed");
+            }
+            // Close Modal
+            const modalElement = document.getElementById('DeleteUserBackdrop');
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modalInstance.hide();
+            appendAlert("User deleted successfully", 'success');
+            loadUsers();
+        }).catch(err => {
+            appendAlert(`${err.message}`, 'warning');
+        });
+    }
+
+    // User Update Handler
+    function updateForm(userId) {
+
+        const username = document.getElementById('updateUsername');
+        const email = document.getElementById('updateEmail');
+
+        document.getElementById('userId').value = userId;
+
+        fetch(`/api/users/${userId}/retrieve/`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error("User not Found");
+            }
+            return response.json();
+        })
+            .then(data => {
+                username.value = data.username;
+                email.value = data.email;
+            }).catch(err => {
+                loadUsers();
+                appendAlert(`${err.message}`, 'warning');
+            });
+
+    }
+    function updateUser() {
+        const userId = document.getElementById('userId').value;
+        const username = document.getElementById('updateUsername').value.trim();
+        const email = document.getElementById('updateEmail').value.trim();
+
+        if (!username || !email) {
+            appendAlert("Pleace fill all details listed", 'danger');
+            return;
+        }
+
+        fetch(`/api/users/${userId}/update/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+                username, email
+            })
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Pleace give valid Username and Email');
+            }
+            return response.json();
+        }).then(data => {
+
+            // Close Modal
+            const modalElement = document.getElementById('UserUpdateModal');
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modalInstance.hide();
+            loadUsers();
+            appendAlert('User Updated Successfully', 'success');
+        }).catch(err => {
+            appendAlert(`${err.message}`, 'danger');
+        });
+    }
+
+    // Authentication Handler
+    function authenticate() {
+        fetch('/api/token/refresh/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'refresh': localStorage.getItem('refresh')
+            })
+        }).then(res => res.json())
+            .then(data => {
+                localStorage.setItem('token', data.access);
+                loadUsers();
+            });
+    }
+
+    // Start Listing Users
+    loadUsers();
+
+</script>
+{% endblock %}
+
+</html>

@@ -1,0 +1,17 @@
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="navbar-centered container-fluid">
+        <a class="navbar-brand fs-3 title-font text-primary" href="/users/">REST API</a>
+        {% if request.resolver_match.url_name != "login" %}
+        <div class="nav-items d-flex">
+            <div class="search-items d-flex">
+                <input class="form-control me-2 title-font" type="search" id="search" placeholder="Username or Email"
+                    aria-label="Search">
+                <button class="btn btn-outline-success" onclick="loadUsers()">Search</button>
+            </div>
+            <button type="button" class="btn btn-primary ms-3 title-font" data-bs-toggle="modal" data-bs-target="#UserCreateModal">
+                + Add User
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</nav>

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="height: 100vh;">
+        <form class="col-sm-12 col-md-5 rounded-3 p-3 bg-light border mx-auto">
+            <h1 class="text-center mb-4">Login</h1>
+            <label class="mb-2 fw-bold" for="username">Name :</label><br>
+            <input class="form-control" placeholder="Username" type="text" id="username"
+                autocomplete="username"><br><br>
+            <label class="mb-2 fw-bold" for="password">Password :</label><br>
+            <input class="form-control" placeholder="Password" type="password" id="password"
+                autocomplete="current-password"><br><br>
+            <button class="btn btn-primary" type="button" onclick="login()">Login</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+{% block script %}
+<script>
+    function login() {
+        fetch("/api/token/", {
+            'method': 'POST',
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': JSON.stringify({
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            })
+
+        }).then(res => {
+            console.log(res);
+            if (!res.ok) {
+                throw new Error("User Not Exist | User correct username or password");
+            }
+            return res.json();
+        })
+            .then(data => {
+                // console.log(data);
+                localStorage.setItem('token', data.access);
+                localStorage.setItem('refresh', data.refresh);
+                window.location.href = '/users/';
+            }).catch(err => {
+                alert(err.message);
+            });
+    }
+</script>
+{% endblock %}
+
+</html>
