@@ -32,22 +32,39 @@ This project was developed **practically without relying on tutorials**, focusin
 ## 📂 Project Structure
 
 project/
+
 │── accounts/
+
 │ ├── views.py
+
 │ ├── serializers.py
+
 │ ├── permissions.py
+
 │ ├── pagination.py
+
 │ ├── page_urls.py
+
 │ └── urls.py
+
 │── static/
+
 │ └── responsive.css
+
 │── templates/
+
 │ ├── layouts/
+
 │ │ └── navbar.html
+
 │ ├── base.html
+
 │ ├── users.html
+
 │── project/
+
 │ └── settings.py
+
 └── manage.py
 
 ---
@@ -69,7 +86,7 @@ POST /api/token/
 
 **Use the access token in headers:**
 
-**Authorization:** Bearer <token>
+**Authorization:** Bearer < token >
 
 | Method | Endpoint                  | Description     | Permission |
 | ------ | ------------------------- | --------------- | ---------- |
