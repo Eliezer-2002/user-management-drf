@@ -87,11 +87,10 @@ Pagination implemented using PageNumberPagination
 
 Search enabled via SearchFilter
 
-Example:
+**Example:**
 /api/users/?page=2&search=john
 
-
-
+---
 
 ## 🧠 Key Learnings
 
@@ -107,6 +106,7 @@ Handling pagination & search on frontend
 
 Secure API design using JWT
 
+---
 
 ## 🧪 How to Run Locally
 
@@ -124,18 +124,23 @@ source env/bin/activate
 
 ### Install dependencies
 
+```bash
 pip install -r requirements.txt
-
+```
 
 ### Run migrations
 
+```bash
 python manage.py migrate
-
+```
 
 ### Start server
 
+```bash
 python manage.py runserver
+```
 
+---
 
 ## 🎯 Future Improvements
 
@@ -147,11 +152,17 @@ Frontend using React
 
 Deployment with PostgreSQL
 
+---
+
 ## 👨‍💻 Author
 
 Eliezer S
+
 Aspiring Python Backend / Full Stack Developer
+
 B.Sc Computer Science (2024)
+
+---
 
 ## ⭐ Why This Project?
 
