@@ -65,6 +65,8 @@ POST /api/token/
   "refresh": "your_refresh_token"
 }
 
+```
+
 **Use the access token in headers:**
 
 **Authorization:** Bearer <token>
