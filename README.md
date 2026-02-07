@@ -31,41 +31,26 @@ This project was developed **practically without relying on tutorials**, focusin
 
 ## 📂 Project Structure
 
+```bash
 project/
-
 │── accounts/
-
 │ ├── views.py
-
 │ ├── serializers.py
-
 │ ├── permissions.py
-
 │ ├── pagination.py
-
 │ ├── page_urls.py
-
 │ └── urls.py
-
 │── static/
-
 │ └── responsive.css
-
 │── templates/
-
 │ ├── layouts/
-
 │ │ └── navbar.html
-
 │ ├── base.html
-
 │ ├── users.html
-
 │── project/
-
 │ └── settings.py
-
 └── manage.py
+```
 
 ---
 
