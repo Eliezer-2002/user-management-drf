@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="height: 100vh;">
+        <form onsubmit="event.preventDefault(); register();"
+            class="col-sm-12 col-md-5 rounded-3 p-3 bg-light border mx-auto">
+            <h1 class="text-center mb-4">Register</h1>
+            <label class="mb-2 fw-bold" for="username">Username :</label><br>
+            <input class="form-control" placeholder="Username" maxlength="14" type="text" id="username"
+                autocomplete="username" required>
+            <div id="username-error"></div>
+            <br>
+            <label class="mb-2 fw-bold" for="email">Email :</label><br>
+            <input class="form-control" placeholder="Email" type="email" id="email" autocomplete="email" required>
+            <div id="email-error"></div>
+            <br>
+            <label class="mb-2 fw-bold" for="password1">Password :</label><br>
+            <input class="form-control" placeholder="Password" type="password" id="password1"
+                autocomplete="new-password" required>
+            <br>
+            <label class="mb-2 fw-bold" for="password2">Confirm Password :</label><br>
+            <input class="form-control" placeholder="Password" type="password" id="password2"
+                autocomplete="new-password" required>
+            <div id="password-error"></div>
+            <br>
+            <button class="btn btn-primary" type="submit">Register</button>
+            <br><br>
+            <p>Alredy have an account? <a href="{% url 'login' %}">Login</a></p>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+{% block script %}
+<script>
+
+    // Redirect when alredy logged-in
+    if (localStorage.getItem('token')) {
+        window.location.href = '/users';
+    }
+
+    // Remove spaces in username input box
+    const userName = document.getElementById("username");
+    userName.addEventListener("input", function () {
+        this.value = this.value.replace(/\s/g, '');
+    });
+    function register() {
+        const userName = document.getElementById('username').value;
+        const userMail = document.getElementById('email').value;
+        const pwd1 = document.getElementById('password1').value;
+        const pwd2 = document.getElementById('password2').value;
+        fetch("/api/newuserregister/", {
+            'method': 'POST',
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': JSON.stringify({
+                username: userName,
+                email: userMail,
+                password: pwd1,
+                confirm_password: pwd2
+            })
+
+        }).then(async response => {
+            const data = await response.json();
+            if (!response.ok) throw data
+            return data;
+        })
+            .then(data => {
+                window.location.href = '/';
+            }).catch(err => {
+                const usernameError = document.getElementById('username-error');
+                const emailError = document.getElementById('email-error');
+                const passwordError = document.getElementById('password-error');
+                // Clear previous errors
+                usernameError.innerHTML = "";
+                emailError.innerHTML = "";
+                passwordError.innerHTML = "";
+                if (err.username) {
+                    usernameError.innerHTML = `<p class="text-danger">${err.username[0]}</p>`;
+                }
+                if (err.email) {
+                    emailError.innerHTML = `<p class="text-danger">${err.email[0]}</p>`;
+                }
+                if (err.password) {
+                    passwordError.innerHTML = `<p class="text-danger">${err.password[0]}</p>`;
+                }
+            });
+    }
+</script>
+{% endblock %}
+
+</html>

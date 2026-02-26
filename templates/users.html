@@ -4,9 +4,14 @@
 <!-- ============================================================= -->
 <!-- ================== Users Page Content Start================== -->
 <!-- ============================================================= -->
+
+<!-- Logout Component -->
+<button id="LogoutBtn" class="bg-danger text-white border border-white border-5" data-bs-toggle="modal"
+    data-bs-target="#LogoutBackdrop">
+    <ion-icon name="log-out-outline"></ion-icon>
+</button>
+
 <div class="container">
-    <!-- Alerts -->
-    <div id="liveAlertPlaceholder"></div>
     <h2 class="mt-5 title-font head-title">Users</h2>
     <!-- Users List -->
     <div class="user-list row g-3 my-3" id="userList">
@@ -14,7 +19,7 @@
 </div>
 
 <!-- Pagination Buttons -->
-<nav>
+<nav id="pageBtns">
     <div class="pagination justify-content-center">
         <button class="page-link m-2 fs-4 fw-bold btn" onclick="prevPage()">&lt;</button>
         <button class="page-link m-2 fs-4 fw-bold btn" onclick="nextPage()">&gt;</button>
@@ -31,10 +36,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div id="CreateUserFormAlert"></div>
                 <form onsubmit="event.preventDefault(); createUser();">
-                    <input class="form-control my-3" type="text" id="newUsername" placeholder="Username" required autocomplete="username">
-                    <input class="form-control my-3" type="email" id="newEmail" placeholder="Email" required autocomplete="email">
-                    <input class="form-control my-3" type="password" id="newPassword" placeholder="Password" required autocomplete="new-password">
+                    <input class="form-control my-3" type="text" id="newUsername" placeholder="Username" required
+                        autocomplete="username" maxlength="14">
+                    <input class="form-control my-3" type="email" id="newEmail" placeholder="Email" required
+                        autocomplete="email">
+                    <input class="form-control my-3" type="password" id="newPassword" placeholder="Password" required
+                        autocomplete="new-password">
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Create
@@ -59,8 +68,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div id="UpdateUserFormAlert"></div>
                 <form onsubmit="event.preventDefault(); updateUser();">
-                    <input class="form-control my-3" type="text" id="updateUsername" placeholder="Username" required>
+                    <input class="form-control my-3" type="text" id="updateUsername" placeholder="Username" required
+                        maxlength="14">
                     <input class="form-control my-3" type="email" id="updateEmail" placeholder="Email" required>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -80,7 +91,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="DeleteUserBackdropLabel">Modal title</h1>
+                <h1 class="modal-title fs-5" id="DeleteUserBackdropLabel">Delete User!</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -93,6 +104,26 @@
         </div>
     </div>
 </div>
+
+<!-- Logout Modal from Bootstrap design -->
+<div class="modal fade" id="LogoutBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="LogoutBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="LogoutBackdropLabel">Logout !</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you want to logout ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="logout(false)">No</button>
+                <button type="button" class="btn btn-primary" onclick="logout(true)">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- ============================================================= -->
 <!-- ================== Users Page Content End =================== -->
 <!-- ============================================================= -->
@@ -100,21 +131,33 @@
 {% endblock %}
 {% block script %}
 <script>
+    // Forms
+    // Create
+    const createFormAlert = document.getElementById('CreateUserFormAlert');
+    const updateFormAlert = document.getElementById('UpdateUserFormAlert');
 
-    // Alerts Handler
-    const alertPlaceholder = document.getElementById('liveAlertPlaceholder')
-    const appendAlert = (message, type) => {
-        const wrapper = document.createElement('div')
-        wrapper.innerHTML = [
-            `<div class="alert alert-${type} alert-dismissible mt-4" role="alert">`,
-            `   <div>${message}</div>`,
-            '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
-            '</div>'
-        ].join('')
-
-        alertPlaceholder.append(wrapper)
+    const appendCreateFormAlert = (message, type) => {
+        createFormAlert.innerHTML = '';
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+            <div class="text-${type}">
+                <p>${message}</p>
+            </div>
+        `;
+        createFormAlert.append(wrapper);
     }
 
+    // Update
+    const appendUpdateFormAlert = (message, type) => {
+        updateFormAlert.innerHTML = '';
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+            <div class="text-${type}">
+                <p>${message}</p>
+            </div>
+        `;
+        updateFormAlert.append(wrapper);
+    }
 
     // document.addEventListener("DOMContentLoaded", function() {
     //     // Find all elements with the 'modal' class
@@ -163,7 +206,7 @@
             }
         }).then(respons => {
             if (!respons.ok) {
-                throw new Error(respons.statusText);
+                throw new Error(respons.status)
             }
             return respons.json();
         }).then(data => {
@@ -188,13 +231,25 @@
                     `;
                 list.appendChild(card);
             });
+
             nextUrl = data.next;
             prevUrl = data.previous;
+
+            if (data.count < 13) {
+                document.getElementById('pageBtns').style.display = 'none';
+            }
+
         }).catch(err => {
-            if (confirm(err.message + " | Refresh Acces Token !!")) {
+            if (err.message == '403') {
+                localStorage.removeItem('token');
+                localStorage.removeItem('refresh');
+                window.location.href = '/';
+            }
+            if (err.message == '401') {
+                if (!localStorage.getItem('refresh')) {
+                    window.location.href = '/';
+                }
                 authenticate()
-            } else {
-                window.location.href = '';
             }
         });
     }
@@ -211,16 +266,23 @@
         }
     }
 
+    // Input Box Space remove
+    const newUsername = document.getElementById('newUsername');
+    const updateUsername = document.getElementById('updateUsername');
+
+    newUsername.addEventListener("input", function () {
+        this.value = this.value.replace(/\s/g, '');
+    });
+
+    updateUsername.addEventListener("input", function () {
+        this.value = this.value.replace(/\s/g, '');
+    });
+
     // User creation Handler
     function createUser() {
         const username = document.getElementById('newUsername').value.trim();
         const email = document.getElementById('newEmail').value.trim();
         const password = document.getElementById('newPassword').value.trim();
-
-        if (!username || !email || !password) {
-            appendAlert("Pleace fill all details listed", 'danger');
-            return;
-        }
 
         fetch('/api/users/create/', {
             method: 'POST',
@@ -231,17 +293,18 @@
             body: JSON.stringify({
                 username, email, password
             })
-        }).then(res => {
-            if (!res.ok) {
-                throw new Error("User Creation Failed")
-            }
-            return res.json();
+        }).then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw data;
         }).then(data => {
 
             // Clear Form
             document.getElementById('newUsername').value = '';
             document.getElementById('newEmail').value = '';
             document.getElementById('newPassword').value = '';
+
+            // Clear Alert
+            createFormAlert.innerHTML = '';
 
             // Close Modal
             const modalElement = document.getElementById('UserCreateModal');
@@ -250,7 +313,13 @@
             loadUsers();
             appendAlert('User Created Successfully', 'success');
         }).catch(err => {
-            appendAlert(`${err.message}`, 'warning');
+            if (err.username){
+                if (err.username[0] == 'A user with that username already exists.'){
+                    appendCreateFormAlert('This username not available please user another', 'warning')
+                }else{
+                    appendCreateFormAlert(err.username[0], 'danger')
+                }     
+            }
         });
     }
 
@@ -264,7 +333,6 @@
             const modalElement = document.getElementById('DeleteUserBackdrop');
             const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
             modalInstance.hide();
-            appendAlert("User Not Deleted", 'info');
             return;
         }
 
@@ -323,7 +391,7 @@
         const email = document.getElementById('updateEmail').value.trim();
 
         if (!username || !email) {
-            appendAlert("Pleace fill all details listed", 'danger');
+            appendUpdateFormAlert("Pleace fill all details listed", 'danger');
             return;
         }
 
@@ -338,10 +406,12 @@
             })
         }).then(response => {
             if (!response.ok) {
-                throw new Error('Pleace give valid Username and Email');
+                throw new Error('User Update Failed');
             }
             return response.json();
         }).then(data => {
+            // Clear Alert
+            updateFormAlert.innerHTML = '';
 
             // Close Modal
             const modalElement = document.getElementById('UserUpdateModal');
@@ -350,7 +420,7 @@
             loadUsers();
             appendAlert('User Updated Successfully', 'success');
         }).catch(err => {
-            appendAlert(`${err.message}`, 'danger');
+            appendUpdateFormAlert(`${err.message}`, 'danger');
         });
     }
 
@@ -373,6 +443,19 @@
 
     // Start Listing Users
     loadUsers();
+
+    // Logout Handler
+    function logout(status) {
+        if (!status) {
+            const modalElement = document.getElementById('LogoutBackdrop');
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modalInstance.hide();
+            return;
+        }
+        localStorage.removeItem('token');
+        localStorage.removeItem('refresh');
+        window.location.href = '/';
+    }
 
 </script>
 {% endblock %}

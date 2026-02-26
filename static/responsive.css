@@ -21,6 +21,26 @@ button,
     font-weight: bold;
 }
 
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+#LogoutBtn{
+    border-radius: 50%;
+    height: 50px;
+    width: 50px;
+    outline: 1px solid #dc3545;
+    position: fixed;
+    bottom: 5%;
+    right: 5%;
+    z-index: 1000;
+    font-size: 20px;
+    padding-top: 5px;
+    padding-left: 5px;
+}
+
 /* ====================================== */
 /* Navigation Bar Responsive Design Start */
 /* ====================================== */

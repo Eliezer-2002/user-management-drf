@@ -4,15 +4,17 @@
 {% block content %}
 <div class="container">
     <div class="row justify-content-center align-items-center" style="height: 100vh;">
-        <form class="col-sm-12 col-md-5 rounded-3 p-3 bg-light border mx-auto">
+        <form onsubmit="event.preventDefault(); login();" class="col-sm-12 col-md-5 rounded-3 p-3 bg-light border mx-auto">
             <h1 class="text-center mb-4">Login</h1>
             <label class="mb-2 fw-bold" for="username">Name :</label><br>
             <input class="form-control" placeholder="Username" type="text" id="username"
-                autocomplete="username"><br><br>
+                autocomplete="username" required><br><br>
             <label class="mb-2 fw-bold" for="password">Password :</label><br>
             <input class="form-control" placeholder="Password" type="password" id="password"
-                autocomplete="current-password"><br><br>
-            <button class="btn btn-primary" type="button" onclick="login()">Login</button>
+                autocomplete="current-password" required><br><br>
+            <button class="btn btn-primary" type="submit">Login</button>
+            <br><br>
+            <p>I dont have an Account <a href="{% url 'register' %}">Register</a></p>
         </form>
     </div>
 </div>
@@ -20,23 +22,31 @@
 {% endblock %}
 {% block script %}
 <script>
+    // Redirect when alredy logged-in
+    if (localStorage.getItem('token')) {
+        window.location.href = '/users';
+    }
+
     function login() {
+
+        const userName = document.getElementById('username').value;
+        const pwd = document.getElementById('password').value;
+
         fetch("/api/token/", {
             'method': 'POST',
             'headers': {
                 'Content-Type': 'application/json'
             },
             'body': JSON.stringify({
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value
+                username: userName,
+                password: pwd
             })
 
-        }).then(res => {
-            console.log(res);
-            if (!res.ok) {
-                throw new Error("User Not Exist | User correct username or password");
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Username or Password is Incorrect');
             }
-            return res.json();
+            return response.json();
         })
             .then(data => {
                 // console.log(data);
@@ -44,7 +54,7 @@
                 localStorage.setItem('refresh', data.refresh);
                 window.location.href = '/users/';
             }).catch(err => {
-                alert(err.message);
+                appendAlert(err.message, 'danger');
             });
     }
 </script>

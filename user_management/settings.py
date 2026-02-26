@@ -136,6 +136,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME' : (timedelta(minutes=30)),   # Optional DEFAULT 5 Minutes
+    'ACCESS_TOKEN_LIFETIME' : (timedelta(minutes=1)),   # Optional DEFAULT 5 Minutes
     'AUTH_HEADER_TYPES' : ('Bearer',),
 }
+
+AUTH_USER_MODEL = "accounts.User"
