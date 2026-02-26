@@ -131,6 +131,10 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+STATICFILES_STORAGE = (
+    'whitenoise.storage.CompressedMainfestStaticFilesStorage'
+)
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES' : (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
