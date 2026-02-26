@@ -132,7 +132,7 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_STORAGE = (
-    'whitenoise.storage.CompressedMainfestStaticFilesStorage'
+    'whitenoise.storage.CompressedManifestStaticFilesStorage'
 )
 
 REST_FRAMEWORK = {
