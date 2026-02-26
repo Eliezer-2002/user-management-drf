@@ -4,11 +4,12 @@
 {% block content %}
 <div class="container">
     <div class="row justify-content-center align-items-center" style="height: 100vh;">
-        <form onsubmit="event.preventDefault(); login();" class="col-sm-12 col-md-5 rounded-3 p-3 bg-light border mx-auto">
+        <form onsubmit="event.preventDefault(); login();"
+            class="col-sm-12 col-md-5 rounded-3 p-3 bg-light border mx-auto">
             <h1 class="text-center mb-4">Login</h1>
             <label class="mb-2 fw-bold" for="username">Name :</label><br>
-            <input class="form-control" placeholder="Username" type="text" id="username"
-                autocomplete="username" required><br><br>
+            <input class="form-control" placeholder="Username" type="text" id="username" autocomplete="username"
+                required><br><br>
             <label class="mb-2 fw-bold" for="password">Password :</label><br>
             <input class="form-control" placeholder="Password" type="password" id="password"
                 autocomplete="current-password" required><br><br>
@@ -23,8 +24,8 @@
 {% block script %}
 <script>
     // Redirect when alredy logged-in
-    if (localStorage.getItem('token')) {
-        window.location.href = '/users';
+    if (localStorage.getItem('token') && localStorage.getItem('refresh')) {
+        authenticate();  
     }
 
     function login() {

@@ -183,6 +183,30 @@
         })
     })
 
+    // Authentication Handler
+    function authenticate() {
+        fetch('/api/token/refresh/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'refresh': localStorage.getItem('refresh')
+            })
+        }).then(res => {
+            if (!res.ok) throw res.status;
+            return res.json();
+        })
+            .then(data => {
+                localStorage.setItem('token', data.access);
+                loadUsers();
+            }).catch(err => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('refresh');
+                window.location.href = '/';
+            });
+    }
+
     // Pagination Defaults
     let nextUrl = null
     let prevUrl = null
@@ -194,7 +218,7 @@
         if (!finalUrl) {
             const parems = new URLSearchParams();
             if (search) {
-                parems.append('search', search)
+                parems.append('search', search);
             }
             finalUrl = `/api/users/?page=1&${parems.toString()}`;
         }
@@ -205,9 +229,7 @@
                 'Authorization': 'Bearer ' + localStorage.getItem('token')
             }
         }).then(respons => {
-            if (!respons.ok) {
-                throw new Error(respons.status)
-            }
+            if (!respons.ok) throw respons.status;
             return respons.json();
         }).then(data => {
             const list = document.getElementById('userList');
@@ -240,16 +262,24 @@
             }
 
         }).catch(err => {
-            if (err.message == '403') {
+
+            // Not Allow Dummy Users Using Site
+            if (err === 403) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('refresh');
                 window.location.href = '/';
             }
-            if (err.message == '401') {
-                if (!localStorage.getItem('refresh')) {
-                    window.location.href = '/';
+
+            // Reauthenticate or Relogin
+            if (err === 401) {
+                if (localStorage.getItem('refresh')) {
+                    localStorage.removeItem('token');
+                    authenticate();
+                    return;
                 }
-                authenticate()
+                localStorage.removeItem('token');
+                localStorage.removeItem('refresh');
+                window.location.href = '/';
             }
         });
     }
@@ -313,12 +343,12 @@
             loadUsers();
             appendAlert('User Created Successfully', 'success');
         }).catch(err => {
-            if (err.username){
-                if (err.username[0] == 'A user with that username already exists.'){
+            if (err.username) {
+                if (err.username[0] == 'A user with that username already exists.') {
                     appendCreateFormAlert('This username not available please user another', 'warning')
-                }else{
+                } else {
                     appendCreateFormAlert(err.username[0], 'danger')
-                }     
+                }
             }
         });
     }
@@ -422,23 +452,6 @@
         }).catch(err => {
             appendUpdateFormAlert(`${err.message}`, 'danger');
         });
-    }
-
-    // Authentication Handler
-    function authenticate() {
-        fetch('/api/token/refresh/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'refresh': localStorage.getItem('refresh')
-            })
-        }).then(res => res.json())
-            .then(data => {
-                localStorage.setItem('token', data.access);
-                loadUsers();
-            });
     }
 
     // Start Listing Users
