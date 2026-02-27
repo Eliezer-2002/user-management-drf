@@ -22,15 +22,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 import os
 
-SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+import dj_database_url
+
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-local-dev-only",
+    )
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-# DEBUG = False
+# DEBUG = True
 
 CSRF_TRUSTED_ORIGINS = ["https://user-management-drf.onrender.com"]
 
-ALLOWED_HOSTS = ["user-management-drf.onrender.com"]
+ALLOWED_HOSTS = [
+    "user-management-drf.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 # Application definition
@@ -84,10 +93,11 @@ WSGI_APPLICATION = 'user_management.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.config(
+        default="postgresql://postgres:pgsql04@localhost:5432/user_management_local",
+        conn_max_age=600,
+        ssl_require=False,
+    )
 }
 
 
@@ -152,3 +162,9 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = "accounts.User"
+
+DJANGO_SUPERUSER_USERNAME = "Eliezer"
+
+DJANGO_SUPERUSER_EMAIL = "eliezerfsdev@gmail.com"
+
+DJANGO_SUPERUSER_PASSWORD = "drf_um00"
