@@ -22,21 +22,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 import os
 
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "unsafe-secret-key")
+SECRET_KEY = os.environ["3vjxj9zee_c^^%)ot)h*4_rt1=tld6ca9^uzc6rtku8h_)mxa+"]
 
-# DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-DEBUG = False
+# DEBUG = False
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://user-management-drf.onrender.com",
-]
+CSRF_TRUSTED_ORIGINS = ["https://user-management-drf.onrender.com"]
 
-ALLOWED_HOSTS = [
-    "user-management-drf.onrender.com",
-    "localhost",
-    "127.0.0.1",
-]
+ALLOWED_HOSTS = ["user-management-drf.onrender.com"]
 
 
 # Application definition
