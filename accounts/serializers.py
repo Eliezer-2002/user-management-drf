@@ -15,8 +15,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
         extra_kwargs = {
             'username': {'validators': []},  # disable automatic unique check
-            'email': {'validators': []},
-            'password': {'write_only': True}
+            'email': {'validators': []}
         }
     
     def validate(self, attrs):
