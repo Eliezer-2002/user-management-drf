@@ -28,7 +28,15 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "unsafe-secret-key")
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://user-management-drf.onrender.com",
+]
+
+ALLOWED_HOSTS = [
+    "user-management-drf.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 # Application definition
