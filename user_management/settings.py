@@ -170,14 +170,3 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = "accounts.User"
-
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
-
-if os.environ.get("DJANGO_SUPERUSER_PASSWORD") and not User.objects.filter(username="admin").exists():
-    User.objects.create_superuser(
-        username=os.environ.get("DJANGO_SUPERUSER_USERNAME", "Admin"),
-        email=os.environ.get("DJANGO_SUPERUSER_EMAIL", "eliezerfsdev@gmail.com"),
-        password=os.environ.get("DJANGO_SUPERUSER_PASSWORD")
-    )
