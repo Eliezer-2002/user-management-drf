@@ -108,15 +108,20 @@ WSGI_APPLICATION = "user_management.wsgi.application"
 #         ssl_require=True,
 #     )
 
-# Local development
+
+# If running on Render (DATABASE_URL exists)
 if os.environ.get("DATABASE_URL"):
     DATABASES = {
         "default": dj_database_url.config(
             default=os.environ.get("DATABASE_URL"),
             conn_max_age=600,
-            ssl_require=False,
+            ssl_require=True,  # Changed to True because Neon requires SSL
         )
     }
+    # Recommended for Neon/Serverless Postgres connection pooling
+    DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
+    
+# Local development (Fallback)
 else:
     DATABASES = {
         "default": {
@@ -131,6 +136,7 @@ else:
             },
         }
     }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
