@@ -11,6 +11,10 @@
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{% static 'responsive.css' %}">
 </head>
 
@@ -18,30 +22,15 @@
     {% include 'layouts/navbar.html' %}
     <!-- Alerts -->
     <div class="container">
-        <div id="liveAlertPlaceholder"></div>
+        <div id="liveAlertPlaceholder" aria-live="polite"></div>
     </div>
     {% block content %}
     {% endblock %}
+    <script src="{% static 'js/base.js' %}"></script>
+    <script src="{% static 'js/auth.js' %}"></script>
+    {% block script %}{% endblock %}
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </body>
-<script>
-    // Alerts Handler
-    // Page
-    const alertPlaceholder = document.getElementById('liveAlertPlaceholder')
-    const appendAlert = (message, type) => {
-        const wrapper = document.createElement('div')
-        wrapper.innerHTML = [
-            `<div class="alert alert-${type} alert-dismissible mt-4" role="alert">`,
-            `   <div>${message}</div>`,
-            '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
-            '</div>'
-        ].join('')
-
-        alertPlaceholder.append(wrapper)
-    }
-</script>
-{% block script %}
-{% endblock %}
-<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 
 </html>

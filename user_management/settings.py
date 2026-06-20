@@ -10,36 +10,49 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-from pathlib import Path
+import os
 from datetime import timedelta
+from pathlib import Path
+
+import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+def env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
-import os
 
-import dj_database_url
+def env_list(name, default):
+    value = os.environ.get(name)
+    if not value:
+        return default
+    return [item.strip() for item in value.split(",") if item.strip()]
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-local-dev-only",
+
+DEBUG = env_bool("DEBUG")
+LOCAL_SECRET_KEY = "django-insecure-local-dev-only"
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", LOCAL_SECRET_KEY)
+IS_PRODUCTION = (
+    bool(os.environ.get("RENDER") or os.environ.get("DATABASE_URL")) and not DEBUG
 )
 
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+if IS_PRODUCTION and SECRET_KEY == LOCAL_SECRET_KEY:
+    raise ImproperlyConfigured("DJANGO_SECRET_KEY must be set in production.")
 
-# DEBUG = True
-
-CSRF_TRUSTED_ORIGINS = ["https://user-management-drf.onrender.com"]
-
-ALLOWED_HOSTS = [
-    "user-management-drf.onrender.com",
-    "localhost",
-    "127.0.0.1",
-]
+ALLOWED_HOSTS = env_list(
+    "ALLOWED_HOSTS",
+    ["user-management-drf.onrender.com", "localhost", "127.0.0.1"],
+)
+CSRF_TRUSTED_ORIGINS = env_list(
+    "CSRF_TRUSTED_ORIGINS",
+    ["https://user-management-drf.onrender.com"],
+)
 
 
 # Application definition
@@ -71,7 +84,7 @@ ROOT_URLCONF = "user_management.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -83,57 +96,29 @@ TEMPLATES = [
     },
 ]
 
-TEMPLATES[0]["DIRS"] = [BASE_DIR / "templates"]
-
 
 WSGI_APPLICATION = "user_management.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
-# DATABASES = {
-#     "default": dj_database_url.config(
-#         default="postgresql://postgres:pgsql04@localhost:5432/user_management_local",
-#         conn_max_age=600,
-#         ssl_require=False,
-#     )
-# }
-
-# # If DATABASE_URL exists (Render production), override
-# if os.environ.get("DATABASE_URL"):
-#     DATABASES["default"] = dj_database_url.config(
-#         default=os.environ.get("DATABASE_URL"),
-#         conn_max_age=600,
-#         ssl_require=True,
-#     )
-
-
-# If running on Render (DATABASE_URL exists)
-if os.environ.get("DATABASE_URL"):
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
     DATABASES = {
         "default": dj_database_url.config(
-            default=os.environ.get("DATABASE_URL"),
+            default=database_url,
             conn_max_age=600,
-            ssl_require=True,  # Changed to True because Neon requires SSL
+            conn_health_checks=True,
         )
     }
-    # Recommended for Neon/Serverless Postgres connection pooling
-    DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
-    
-# Local development (Fallback)
+    if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
+        DATABASES["default"].setdefault("OPTIONS", {})["sslmode"] = os.environ.get(
+            "DB_SSLMODE", "disable" if DEBUG else "require"
+        )
+        DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 else:
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": "user_management_local",
-            "USER": "postgres",
-            "PASSWORD": "pgsql04",
-            "HOST": "localhost",
-            "PORT": "5432",
-            "OPTIONS": {
-                "sslmode": "disable" 
-            },
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 
@@ -180,18 +165,51 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    },
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ),
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/minute",
+        "user": "300/minute",
+    },
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": (timedelta(minutes=10)),  # Optional DEFAULT 5 Minutes
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 AUTH_USER_MODEL = "accounts.User"
+
+if IS_PRODUCTION:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", default=True)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "3600"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool(
+        "SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True
+    )
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {
+        "handlers": ["console"],
+        "level": os.environ.get("LOG_LEVEL", "INFO"),
+    },
+}

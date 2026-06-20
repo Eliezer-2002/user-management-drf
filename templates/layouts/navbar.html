@@ -1,13 +1,13 @@
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="navbar-centered container-fluid">
-        <a class="navbar-brand fs-3 title-font text-primary" href="/users/">REST API</a>
+        <a class="navbar-brand fs-3 title-font text-primary" href="{% url 'users' %}">REST API</a>
         {% if request.resolver_match.url_name == "users" %}
         <div class="nav-items d-flex">
-            <div class="search-items d-flex">
+            <form class="search-items d-flex" id="searchForm" role="search">
                 <input class="form-control me-2 title-font" type="search" id="search" placeholder="Username or Email"
                     aria-label="Search">
-                <button class="btn btn-outline-success" onclick="loadUsers()">Search</button>
-            </div>
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
             <button type="button" class="btn btn-primary ms-3 title-font" data-bs-toggle="modal" data-bs-target="#UserCreateModal">
                 + Add User
             </button>

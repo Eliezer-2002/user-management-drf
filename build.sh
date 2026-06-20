@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -o errexit
+set -o nounset
+set -o pipefail
 
-# Install dependencies
 pip install -r requirements.txt
 
-# Run outstanding migrations
 python manage.py migrate
 
-# Collect static assets
 python manage.py collectstatic --noinput
 
-# Create superuser automatically using env variables
-python manage.py createsuperuser --noinput || true
+if [[ -n "${DJANGO_SUPERUSER_USERNAME:-}" && -n "${DJANGO_SUPERUSER_EMAIL:-}" && -n "${DJANGO_SUPERUSER_PASSWORD:-}" ]]; then
+    python manage.py ensure_superuser
+fi

@@ -1,183 +1,88 @@
-# 🚀 User Management System – Django REST Framework
+# User Management System
+
+A Django REST Framework application where registered manager accounts can create,
+search, update, and delete only the users they own. The browser interface uses JWT
+authentication and the API enforces ownership on every object lookup.
+
+## Stack
+
+- Python and Django
+- Django REST Framework and Simple JWT
+- SQLite for local development; PostgreSQL through `DATABASE_URL` in production
+- Bootstrap, HTML, CSS, and JavaScript
+- WhiteNoise and Gunicorn for deployment
+
+## Local setup
 
 ```bash
-https://user-management-drf.onrender.com/
-```
-
-A **role-based User Management System** built using **Django REST Framework (DRF)** that provides secure authentication, authorization, pagination, and search features following REST best practices.
-
-This project was developed **practically without relying on tutorials**, focusing on real-world backend development concepts.
-
----
-
-## 🛠️ Tech Stack
-
-- **Backend:** Python, Django, Django REST Framework
-- **Authentication:** JWT (JSON Web Tokens)
-- **Database:** SQLite (development)
-- **API Features:** Pagination, Search, Permissions
-- **Frontend:** HTML + css + JavaScript (Fetch API)
-
----
-
-## ✨ Features
-
-- 🔐 JWT-based authentication (Login & Protected APIs)
-- 👤 User listing with pagination
-- 🔍 Search users by username or email
-- 🧑‍⚖️ Role-based access control (Admin / Authenticated users)
-- 🛡️ Custom permissions using `BasePermission`
-- ✏️ Create and update users via REST APIs
-- 📄 Clean API responses with pagination metadata
-- 📐 REST-compliant API design
-
----
-
-## 📂 Project Structure
-
-```bash
-project/
-│── accounts/
-│ ├── views.py
-│ ├── serializers.py
-│ ├── permissions.py
-│ ├── pagination.py
-│ ├── page_urls.py
-│ └── urls.py
-│── static/
-│ └── responsive.css
-│── templates/
-│ ├── layouts/
-│ │ └── navbar.html
-│ ├── base.html
-│ ├── users.html
-│── project/
-│ └── settings.py
-└── manage.py
-```
-
----
-
-## 🔑 Authentication
-This project uses **JWT authentication**.
-
-### Login
-POST /api/token/
-
-**Response:**
-```json
-{
-  "access": "your_access_token",
-  "refresh": "your_refresh_token"
-}
-
-```
-
-**Use the access token in headers:**
-
-**Authorization:** Bearer < token >
-
-| Method | Endpoint                  | Description     | Permission |
-| ------ | ------------------------- | --------------- | ---------- |
-| POST   | `/api/token/`             | Login           | Public     |
-| GET    | `/api/users/`             | List users      | Admin only |
-| POST   | `/api/users/create/`      | Create user     | Admin only |
-| PATCH  | `/api/users/<id>/update/` | Update user     | Admin      |
-| GET    | `/api/users/?search=`     | Search users    | Admin      |
-| GET    | `/api/users/?page=`       | Paginated users | Admin      |
-
-
-## 📄 Pagination & Search
-
-Pagination implemented using PageNumberPagination
-
-Search enabled via SearchFilter
-
-**Example:**
-/api/users/?page=2&search=john
-
----
-
-## 🧠 Key Learnings
-
-Proper use of DRF Generic Views
-
-Difference between CreateAPIView and UpdateAPIView
-
-Writing business logic inside serializers
-
-Implementing custom permissions
-
-Handling pagination & search on frontend
-
-Secure API design using JWT
-
----
-
-## 🧪 How to Run Locally
-
-### Clone the repository
-
-git clone https://github.com/your-username/your-repo.git
-cd your-repo
-
-
-### Create virtual environment
-
-python -m venv env
-source env/bin/activate
-
-
-### Install dependencies
-
-```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-```
-
-### Run migrations
-
-```bash
 python manage.py migrate
-```
-
-### Start server
-
-```bash
 python manage.py runserver
 ```
 
----
+Local development falls back to `db.sqlite3`. Copy the values from `.env.example`
+into your shell or hosting provider; this project does not automatically load `.env`
+files.
 
-## 🎯 Future Improvements
+Run validation with:
 
-Role-based permissions for multiple user types
+```bash
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py test
+```
 
-API documentation using Swagger
+## Roles
 
-Frontend using React
+- **Manager:** may use the user-management API and can access only users linked to
+  that manager through `created_by`.
+- **Managed user:** has no user-management privileges.
+- **Django staff/superuser:** reserved for Django admin access. A superuser can use
+  the API as a manager, but API object access is still ownership-scoped.
 
-Deployment with PostgreSQL
+Public registration creates a manager, not a Django staff user.
 
----
+## API
 
-## 👨‍💻 Author
+| Method | Endpoint | Purpose | Access |
+| --- | --- | --- | --- |
+| POST | `/api/newuserregister/` | Register a manager | Public |
+| POST | `/api/token/` | Obtain access and refresh tokens | Public |
+| POST | `/api/token/refresh/` | Refresh an access token | Public |
+| GET | `/api/users/` | List/search owned users | Manager |
+| POST | `/api/users/create/` | Create an owned user | Manager |
+| GET | `/api/users/<id>/retrieve/` | Retrieve an owned user | Manager |
+| PUT/PATCH | `/api/users/<id>/update/` | Update an owned user | Manager |
+| DELETE | `/api/users/<id>/delete/` | Delete an owned user | Manager |
 
-Eliezer S
+Search with `/api/users/?search=name` and paginate with `/api/users/?page=2`.
+Send access tokens as `Authorization: Bearer <access-token>`.
 
-Aspiring Python Backend / Full Stack Developer
+## Seed data
 
-B.Sc Computer Science (2024)
+Create a manager first, then run:
 
----
+```bash
+python manage.py seed_data --owner manager_username --count 50
+```
 
-## ⭐ Why This Project?
+Seeded accounts have unusable passwords unless `--password` is explicitly supplied.
 
-* This project demonstrates:
+## Production configuration
 
-* Real backend problem solving
+Required values:
 
-* Clean DRF architecture
+- `DJANGO_SECRET_KEY`
+- `DATABASE_URL`
+- `ALLOWED_HOSTS`
+- `CSRF_TRUSTED_ORIGINS`
 
-* RESTful API design
+The deployment script installs dependencies, applies migrations, collects static
+assets, and creates a superuser only when all three `DJANGO_SUPERUSER_*` values are
+present. Configure the process command as:
 
-* Practical development without tutorial dependency
+```bash
+gunicorn user_management.wsgi:application
+```
