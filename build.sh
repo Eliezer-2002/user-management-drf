@@ -18,4 +18,4 @@ if [[ -n "${DJANGO_SUPERUSER_USERNAME:-}" && -n "${DJANGO_SUPERUSER_EMAIL:-}" &&
 fi
 
 # 5. TEMPORARY LINE: Replace "your_username_here" with your actual admin username
-python manage.py seed_data --count 100 --owner "Eliezer" --password "TestPassword123!"
+# python manage.py seed_data --count 100 --owner "Eliezer" --password "TestPassword123!"
